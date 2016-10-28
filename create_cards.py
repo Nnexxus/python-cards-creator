@@ -1,15 +1,24 @@
 from PIL import Image, ImageDraw, ImageFont
+from sys import argv
+import yaml
+import Card
 
-img = Image.open("background.png")
-draw = ImageDraw.Draw(img)
-draw.line((0, 0) + img.size, fill=128)
-draw.line((0, img.size[1], img.size[0], 0), fill=128)
-fnt = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', 80)
-# draw text, half opacity
-draw.text((250,10), "Hello", font=fnt, fill=(255,255,255,128))
-# draw text, full opacity
-draw.text((250,60), "World", font=fnt, fill=(255,255,255,255))
-del draw
+def insert_text(text, coordinates, font_size, align, draw_object):
+    font = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', font_size)
+    if align=="center":
+        width=draw_object.textsize(text, font)[0]
+        coordinates = (coordinates[0]-width/2, coordinates[1])
+    draw_object.multiline_text(coordinates, text, font=font, align=align)
+    
+def generate_card(card):
+    img = Image.open("background.png")
+    draw = ImageDraw.Draw(img)
+    insert_text(card.title, (320, 10), 80, "center", draw)
+    insert_text(card.text, (100, 600), 30, "left", draw)
+    del draw
+    img.save(card.filename, "PNG")
 
-# write to stdout
-img.save("output.png", "PNG")
+with open(argv[-1],  "r") as f:
+    yml = yaml.load_all(f)
+    for card in yml:
+        generate_card(card)
